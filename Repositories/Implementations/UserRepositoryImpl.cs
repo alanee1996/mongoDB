@@ -1,4 +1,5 @@
 ﻿using Base;
+using MongoDB.Driver;
 using Repositories.ARepositories;
 using Repositories.Entities;
 using System;
@@ -13,6 +14,10 @@ namespace Repositories.Implementations
     {
         private bool disposeStatus = false;
 
+        public UserRepositoryImpl(DBEntities db) : base(db)
+        {
+        }
+
         public override Task<bool> create(User obj)
         {
             throw new NotImplementedException();
@@ -22,13 +27,15 @@ namespace Repositories.Implementations
 
         public override void Dispose()
         {
+            this.db.Dispose();
             GC.SuppressFinalize(this);
             disposeStatus = true;
         }
 
-        public override Task<PageResult<User>> findAllInPage(int page)
+        public async override Task<PageResult<User>> findAllInPage(int page)
         {
-            throw new NotImplementedException();
+            var result = await findAll();
+            return result.AsQueryable().GetPage(page, db.settings.pageSize);
         }
 
         public override Task<User> findById(int id)
@@ -51,9 +58,10 @@ namespace Repositories.Implementations
             throw new NotImplementedException();
         }
 
-        public override Task<IQueryable<User>> findAll()
+        public async override Task<IEnumerable<User>> findAll()
         {
-            throw new NotImplementedException();
+            var result = await collections.FindAsync(c => c.isActive);
+            return result.ToEnumerable();
         }
     }
 }

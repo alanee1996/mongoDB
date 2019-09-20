@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Repositories;
 using Repositories.ARepositories;
 using Repositories.Implementations;
 using Services.Implementations;
@@ -33,7 +34,7 @@ namespace MongoDBLearning
             var settings = this.Configuration.GetSection("AppSettings");
             services.Configure<AppSetting>(settings);
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
+            services.AddScoped<DBEntities>();
             //custom services
             //register repositories
             services.AddScoped<UserRepository, UserRepositoryImpl>();

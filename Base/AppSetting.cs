@@ -8,5 +8,6 @@ namespace Base
     {
         public string connectionString { get; set; }
         public string dbname { get; set; }
+        public int pageSize { get; set; }
     }
 }
