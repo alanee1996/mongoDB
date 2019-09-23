@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Repositories.Entities
 {
-    [DBConfig.Collection("users")]
+    [DBConfig.Collection("users", "id")]
     public class User
     {
         [BsonId]
@@ -19,7 +19,17 @@ namespace Repositories.Entities
         public DateTime dob { get; set; }
         public string password { get; set; }
         public bool isActive { get; set; }
+        [BsonRepresentation(BsonType.DateTime)]
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime createdAt { get; set; }
+        [BsonRepresentation(BsonType.DateTime)]
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime updatedAt { get; set; }
+
+        public User()
+        {
+            this.createdAt = DateTime.Now;
+            this.updatedAt = DateTime.Now;
+        }
     }
 }

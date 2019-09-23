@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Base;
+﻿using Base;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using MongoDBLearning.Middlewares;
 using Repositories;
 using Repositories.ARepositories;
 using Repositories.Implementations;
@@ -55,7 +51,29 @@ namespace MongoDBLearning
             }
 
             app.UseHttpsRedirection();
-            app.UseMvc();
+            app.UseRouter(BuildRouter(app));
+            app.UseStaticFiles();
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
+        }
+
+        //build the custom route for specific middleware
+        public IRouter BuildRouter(IApplicationBuilder app)
+        {
+            var builder = new RouteBuilder(app);
+
+            builder.MapMiddlewareRoute("/api/authenticated/{*controller}", a =>
+            {
+                a.UseJsonResponse();
+                a.UseMvc();
+            });
+
+            return builder.Build();
         }
     }
+
 }

@@ -21,7 +21,7 @@ namespace Repositories.ARepositories
         {
             if (Validator.isNullOrEmpty(obj.name)) throw new InvalidDataException("User name cannot be null");
             if (Validator.isNullOrEmpty(obj.password)) throw new InvalidDataException("User password cannot be null");
-            if (Validator.isNullOrEmpty(obj.email)) throw new InvalidDataException("User enail cannot be null");
+            if (Validator.isNullOrEmpty(obj.email)) throw new InvalidDataException("User email cannot be null");
             if (Validator.isNullOrEmpty(obj.dob)) throw new InvalidDataException("User date of birth cannot be null");
         }
     }

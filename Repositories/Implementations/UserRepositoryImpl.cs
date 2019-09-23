@@ -18,9 +18,18 @@ namespace Repositories.Implementations
         {
         }
 
-        public override Task<bool> create(User obj)
+        public async override Task<bool> create(User obj)
         {
-            throw new NotImplementedException();
+            validation(obj);
+            try
+            {
+                await collections.InsertOneAsync(obj);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public bool isDisposed() => disposeStatus;
@@ -38,24 +47,28 @@ namespace Repositories.Implementations
             return result.AsQueryable().GetPage(page, db.settings.pageSize);
         }
 
-        public override Task<User> findById(int id)
+        public async override Task<User> findById(string id)
         {
-            throw new NotImplementedException();
+            return await collections.Find(c => c.id == id && c.isActive).FirstOrDefaultAsync();
         }
 
-        public override Task<bool> hardDelete(User obj)
+        public async override Task<bool> hardDelete(User obj)
         {
-            throw new NotImplementedException();
+            var result = await collections.DeleteOneAsync(c => c.id == obj.id);
+            return result.DeletedCount > 0 ? true : false;
         }
 
-        public override Task<bool> softDelete(User obj)
+        public async override Task<bool> softDelete(User obj)
         {
-            throw new NotImplementedException();
+            var result = await collections.UpdateOneAsync(c => c.id == obj.id, Builders<User>.Update.Set(c => c.isActive, false));
+            return result.ModifiedCount > 0 ? true : false;
         }
 
-        public override Task<bool> update(User obj)
+        public async override Task<bool> update(User obj)
         {
-            throw new NotImplementedException();
+            validation(obj);
+            var result = await collections.ReplaceOneAsync(c => c.id == obj.id, obj);
+            return result.ModifiedCount > 0 ? true : false;
         }
 
         public async override Task<IEnumerable<User>> findAll()

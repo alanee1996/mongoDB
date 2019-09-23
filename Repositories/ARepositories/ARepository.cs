@@ -23,7 +23,7 @@ namespace Repositories.ARepositories
         public abstract void Dispose();
         public abstract Task<IEnumerable<T>> findAll();
         public abstract Task<PageResult<T>> findAllInPage(int page);
-        public abstract Task<T> findById(int id);
+        public abstract Task<T> findById(string id);
         public abstract Task<bool> hardDelete(T obj);
         public abstract Task<bool> softDelete(T obj);
         public abstract Task<bool> update(T obj);
