@@ -15,6 +15,7 @@ namespace Repositories.Entities
         public string id { get; set; }
         public string name { get; set; }
         public string email { get; set; }
+        public string roleId { get; set; }
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime dob { get; set; }
         public string password { get; set; }
