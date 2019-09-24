@@ -1,4 +1,5 @@
-﻿using Base;
+﻿using AutoMapper;
+using Base;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -10,6 +11,7 @@ using MongoDBLearning.Middlewares;
 using Repositories;
 using Repositories.ARepositories;
 using Repositories.Implementations;
+using Services;
 using Services.Implementations;
 using Services.IServices;
 
@@ -31,6 +33,13 @@ namespace MongoDBLearning
             services.Configure<AppSetting>(settings);
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddScoped<DBEntities>();
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MapConfig());
+            });
+
+            IMapper mapper = mappingConfig.CreateMapper();
+            services.AddSingleton(mapper);
             //custom services
             //register repositories
             services.AddScoped<UserRepository, UserRepositoryImpl>();

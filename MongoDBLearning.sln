@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.489
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoDBLearning", "MongoDBLearning\MongoDBLearning.csproj", "{08E145B8-4FD4-4424-9CED-4A0BE15017FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MongoDBLearning", "MongoDBLearning\MongoDBLearning.csproj", "{08E145B8-4FD4-4424-9CED-4A0BE15017FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repositories", "Repositories\Repositories.csproj", "{8102D6AE-04EC-4C2B-861E-2460406EA815}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repositories", "Repositories\Repositories.csproj", "{8102D6AE-04EC-4C2B-861E-2460406EA815}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Services.csproj", "{568F75C3-9FF8-40AC-AE86-55BE8A03D538}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services", "Services\Services.csproj", "{568F75C3-9FF8-40AC-AE86-55BE8A03D538}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Base", "Base\Base.csproj", "{33FEF3C3-A482-4501-BEA9-C16C53553F49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Base", "Base\Base.csproj", "{33FEF3C3-A482-4501-BEA9-C16C53553F49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

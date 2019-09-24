@@ -25,6 +25,7 @@ namespace MongoDBLearning.Middlewares
         {
             try
             {
+               
                 await _next(httpContext);
                 if (httpContext.Response.StatusCode == 404) throw new NotFoundException($"The request for {httpContext.Request.Path} not found");
             }

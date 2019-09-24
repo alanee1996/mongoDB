@@ -12,10 +12,10 @@ namespace Repositories.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string id { get; set; }
+        public ObjectId id { get; set; }
         public string name { get; set; }
         public string email { get; set; }
-        public string roleId { get; set; }
+        public ObjectId roleId { get; set; }
         [BsonRepresentation(BsonType.DateTime)]
         public DateTime dob { get; set; }
         public string password { get; set; }
@@ -26,11 +26,14 @@ namespace Repositories.Entities
         [BsonRepresentation(BsonType.DateTime)]
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime updatedAt { get; set; }
+        //one to one relationship
+        public IEnumerable<Role> roles { get; set; }
 
         public User()
         {
-            this.createdAt = DateTime.Now;
-            this.updatedAt = DateTime.Now;
+            createdAt = DateTime.Now;
+            updatedAt = DateTime.Now;
+            roles = new List<Role>();
         }
     }
 }

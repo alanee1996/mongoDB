@@ -1,10 +1,14 @@
-﻿using Base;
+﻿using AutoMapper;
+using Base;
 using Base.Exceptions;
+using MongoDB.Bson;
 using Repositories.ARepositories;
 using Repositories.Entities;
+using Repositories.ViewModels;
 using Services.IServices;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,10 +17,12 @@ namespace Services.Implementations
     public class UserService : IUserService
     {
         private readonly UserRepository userRepository;
+        private IMapper mapper;
 
-        public UserService(UserRepository userRepository)
+        public UserService(UserRepository userRepository, IMapper mapper)
         {
             this.userRepository = userRepository;
+            this.mapper = mapper;
         }
 
         public async Task<bool> create(User user)
@@ -36,21 +42,22 @@ namespace Services.Implementations
             return await userRepository.softDelete(user);
         }
 
-        public async Task<User> findUserById(string id)
+        public async Task<UserViewModel> findUserById(ObjectId id)
         {
-            return await userRepository.findById(id);
+            return mapper.Map<User, UserViewModel>(await userRepository.findById(id));
         }
 
-        public async Task<IEnumerable<User>> getAllUser()
+        public async Task<IEnumerable<UserViewModel>> getAllUser()
         {
             var result = await userRepository.findAll();
             userRepository.Dispose();
-            return result;
+            return mapper.Map<IEnumerable<User>, IEnumerable<UserViewModel>>(result);
         }
 
-        public async Task<PageResult<User>> getAllUserByPage(int page)
+        public async Task<PageResult<UserViewModel>> getAllUserByPage(int page)
         {
-            return await userRepository.findAllInPage(page);
+            var result = await userRepository.findAllInPage(page);
+            return mapper.Map<PageResult<User>, PageResult<UserViewModel>>(result);
         }
 
         public async Task<bool> hardDelete(User user)
@@ -70,7 +77,7 @@ namespace Services.Implementations
 
         public async Task<bool> update(User user, string id)
         {
-            var u = await findUserById(id);
+            var u = await userRepository.findById(new ObjectId(id));
             if (u == null) throw new NotFoundException($"User not found with id {id}");
             u.name = user.name;
             u.updatedAt = DateTime.Now;

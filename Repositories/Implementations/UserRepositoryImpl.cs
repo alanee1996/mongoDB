@@ -1,4 +1,5 @@
 ﻿using Base;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Repositories.ARepositories;
 using Repositories.Entities;
@@ -47,7 +48,7 @@ namespace Repositories.Implementations
             return result.AsQueryable().GetPage(page, db.settings.pageSize);
         }
 
-        public async override Task<User> findById(string id)
+        public async override Task<User> findById(ObjectId id)
         {
             return await collections.Find(c => c.id == id && c.isActive).FirstOrDefaultAsync();
         }
@@ -73,8 +74,8 @@ namespace Repositories.Implementations
 
         public async override Task<IEnumerable<User>> findAll()
         {
-            var result = await collections.FindAsync(c => c.isActive);
-            return result.ToEnumerable();
+            var result = await collections.Aggregate().Match(c => c.isActive).Lookup<Role, User>("roles", "roleId", "id", "roles").ToListAsync();
+            return result;
         }
     }
 }

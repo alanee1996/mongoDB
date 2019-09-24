@@ -6,7 +6,9 @@ using Base;
 using Base.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using Repositories.Entities;
+using Repositories.ViewModels;
 using Services.IServices;
 
 namespace MongoDBLearning.Controllers
@@ -25,7 +27,7 @@ namespace MongoDBLearning.Controllers
 
         [HttpGet]
         [Route("users")]
-        public Task<IEnumerable<User>> GetUsers()
+        public Task<IEnumerable<UserViewModel>> GetUsers()
         {
             return userService.getAllUser();
         }
@@ -48,7 +50,7 @@ namespace MongoDBLearning.Controllers
         [Route("users/{id}")]
         public async Task<JsonResponse> get(string id)
         {
-            var user = await userService.findUserById(id);
+            var user = await userService.findUserById(new ObjectId(id));
             if (user == null) throw new NotFoundException($"User with id {id} not found");
             return JsonResponse.success("Request successful", user);
         }
@@ -57,9 +59,9 @@ namespace MongoDBLearning.Controllers
         [Route("users/delete/{id}")]
         public async Task<JsonResponse> delete(string id)
         {
-            var user = await userService.findUserById(id);
+            var user = await userService.findUserById(new ObjectId(id));
             if (user == null) throw new NotFoundException($"User with id {id} not found");
-            return await userService.delete(user) ? JsonResponse.success("User delete successful", null) : throw new Exception("Delete user failed due to internal process error");
+            return await userService.delete(null) ? JsonResponse.success("User delete successful", null) : throw new Exception("Delete user failed due to internal process error");
         }
 
         [HttpPatch]
@@ -68,7 +70,7 @@ namespace MongoDBLearning.Controllers
         {
             if (await userService.update(user, id))
             {
-                return JsonResponse.success("User update successful", await userService.findUserById(id));
+                return JsonResponse.success("User update successful", await userService.findUserById(new ObjectId(id)));
             }
             else
             {
