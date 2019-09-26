@@ -29,10 +29,10 @@ namespace Repositories
             DBConfig.CollectionAttribute collection = t.GetCustomAttributes(true).FirstOrDefault(c => c.GetType() == typeof(DBConfig.CollectionAttribute)) as DBConfig.CollectionAttribute;
 
             if (collection == null) throw new Exception("Cannot find the collection from entity model");
-            return createCollection<T>(collection.collectionName, collection.index).Result;
+            return createCollection<T>(collection.collectionName, collection.indexes).Result;
         }
 
-        public async Task<IMongoCollection<T>> createCollection<T>(string collectionName, string index)
+        public async Task<IMongoCollection<T>> createCollection<T>(string collectionName, string[] indexes)
         {
             var collections = await db.ListCollectionsAsync(new ListCollectionsOptions
             {
@@ -44,7 +44,12 @@ namespace Repositories
             }
             await db.CreateCollectionAsync(collectionName);
             var result = db.GetCollection<T>(collectionName);
-            if (!Validator.isNullOrEmpty(index)) result.Indexes.CreateOneAsync(Builders<T>.IndexKeys.Ascending(index));
+            if (!Validator.isNullOrEmpty(indexes))
+            {
+                var indexDefinition = Builders<T>.IndexKeys.Combine(indexes.Select(c => Builders<T>.IndexKeys.Ascending(c)));
+                string s = await result.Indexes.CreateOneAsync(indexDefinition);
+            }
+
             return result;
         }
 

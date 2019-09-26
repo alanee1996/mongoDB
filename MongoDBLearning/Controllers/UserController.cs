@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Base;
 using Base.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -15,6 +16,7 @@ namespace MongoDBLearning.Controllers
 {
     [Route("api/authenticated/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
 
@@ -27,14 +29,14 @@ namespace MongoDBLearning.Controllers
 
         [HttpGet]
         [Route("users")]
-        public Task<IEnumerable<UserViewModel>> GetUsers()
+        public Task<IEnumerable<UserSummaryViewModel>> GetUsers()
         {
             return userService.getAllUser();
         }
 
         [HttpPost]
         [Route("users/create")]
-        public async Task<JsonResponse> create([FromBody] User user)
+        public async Task<JsonResponse> create([FromBody] UserViewModel user)
         {
             try
             {
@@ -66,7 +68,7 @@ namespace MongoDBLearning.Controllers
 
         [HttpPatch]
         [Route("users/update/{id}")]
-        public async Task<JsonResponse> update(string id, [FromBody] User user)
+        public async Task<JsonResponse> update(string id, [FromBody] UserViewModel user)
         {
             if (await userService.update(user, id))
             {
@@ -75,6 +77,22 @@ namespace MongoDBLearning.Controllers
             else
             {
                 return JsonResponse.successButInvalid("User update failed");
+            }
+        }
+
+        [HttpPost]
+        [Route("login")]
+        [AllowAnonymous]
+        public async Task<JsonResponse> login([FromBody] UserLoginViewModel model)
+        {
+            try
+            {
+                var user = await userService.loginUser(model);
+                return JsonResponse.success("Login successful", user);
+            }
+            catch (InvalidDataException ex)
+            {
+                return JsonResponse.successButInvalid(ex.Message);
             }
         }
     }

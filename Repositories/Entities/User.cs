@@ -13,6 +13,7 @@ namespace Repositories.Entities
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId id { get; set; }
+        public string username { get; set; }
         public string name { get; set; }
         public string email { get; set; }
         public ObjectId roleId { get; set; }
@@ -27,6 +28,7 @@ namespace Repositories.Entities
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime updatedAt { get; set; }
         //one to one relationship
+        [BsonIgnoreIfNull]
         public IEnumerable<Role> roles { get; set; }
 
         public User()

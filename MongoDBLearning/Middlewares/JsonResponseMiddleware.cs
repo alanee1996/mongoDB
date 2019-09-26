@@ -25,13 +25,18 @@ namespace MongoDBLearning.Middlewares
         {
             try
             {
-               
+
                 await _next(httpContext);
                 if (httpContext.Response.StatusCode == 404) throw new NotFoundException($"The request for {httpContext.Request.Path} not found");
+                if (httpContext.Response.StatusCode == 401) throw new UnauthorizedException("You are not authorized, please login and submit request with token");
             }
             catch (NotFoundException ex)
             {
                 await HandleExceptionNotFound(httpContext, ex);
+            }
+            catch (UnauthorizedException ex)
+            {
+                await HandleExceptionUnauthorized(httpContext, ex);
             }
             catch (Exception e)
             {
@@ -55,6 +60,15 @@ namespace MongoDBLearning.Middlewares
             var response = context.Response;
             response.ContentType = "application/json";
             var status = (int)HttpStatusCode.NotFound;
+            response.StatusCode = status;
+            await response.WriteAsync(JsonConvert.SerializeObject(JsonResponse.failed(exception.Message, status)));
+        }
+
+        private async Task HandleExceptionUnauthorized(HttpContext context, UnauthorizedException exception)
+        {
+            var response = context.Response;
+            response.ContentType = "application/json";
+            var status = (int)HttpStatusCode.Unauthorized;
             response.StatusCode = status;
             await response.WriteAsync(JsonConvert.SerializeObject(JsonResponse.failed(exception.Message, status)));
         }

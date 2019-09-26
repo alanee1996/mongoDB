@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Base;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using MongoDBLearning.Middlewares;
 using Repositories;
 using Repositories.ARepositories;
@@ -14,6 +16,7 @@ using Repositories.Implementations;
 using Services;
 using Services.Implementations;
 using Services.IServices;
+using System.Text;
 
 namespace MongoDBLearning
 {
@@ -39,12 +42,15 @@ namespace MongoDBLearning
             });
 
             IMapper mapper = mappingConfig.CreateMapper();
+            AddJWTTokenService(services, settings);
             services.AddSingleton(mapper);
             //custom services
             //register repositories
             services.AddScoped<UserRepository, UserRepositoryImpl>();
+            services.AddScoped<RoleRepository, RoleRepositoryImpl>();
             //register services
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IRoleService, RoleService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -77,11 +83,35 @@ namespace MongoDBLearning
 
             builder.MapMiddlewareRoute("/api/authenticated/{*controller}", a =>
             {
+                a.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
                 a.UseJsonResponse();
+                a.UseAuthentication();
                 a.UseMvc();
             });
 
             return builder.Build();
+        }
+
+
+        public void AddJWTTokenService(IServiceCollection services, IConfigurationSection settings)
+        {
+            var secret = Encoding.ASCII.GetBytes(settings["tokenKey"]);
+            services.AddAuthentication(c =>
+            {
+                c.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                c.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(c =>
+            {
+                c.RequireHttpsMetadata = false;
+                c.SaveToken = true;
+                c.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(secret),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
         }
     }
 

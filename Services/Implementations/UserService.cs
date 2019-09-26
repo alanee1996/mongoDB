@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Base;
 using Base.Exceptions;
+using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using Repositories.ARepositories;
 using Repositories.Entities;
@@ -18,18 +19,19 @@ namespace Services.Implementations
     {
         private readonly UserRepository userRepository;
         private IMapper mapper;
-
-        public UserService(UserRepository userRepository, IMapper mapper)
+        private readonly AppSetting setting;
+        public UserService(UserRepository userRepository, IMapper mapper, IOptions<AppSetting> option)
         {
             this.userRepository = userRepository;
+            this.setting = option.Value;
             this.mapper = mapper;
         }
 
-        public async Task<bool> create(User user)
+        public async Task<bool> create(UserViewModel user)
         {
             user.isActive = true;
             user.password = BCrypt.Net.BCrypt.HashPassword(user.password);
-            return await userRepository.create(user);
+            return await userRepository.create(mapper.Map<UserViewModel, User>(user));
         }
 
         public Task<string> createToken(User user)
@@ -37,9 +39,9 @@ namespace Services.Implementations
             throw new NotImplementedException();
         }
 
-        public async Task<bool> delete(User user)
+        public async Task<bool> delete(UserViewModel user)
         {
-            return await userRepository.softDelete(user);
+            return await userRepository.softDelete(mapper.Map<UserViewModel, User>(user));
         }
 
         public async Task<UserViewModel> findUserById(ObjectId id)
@@ -47,27 +49,34 @@ namespace Services.Implementations
             return mapper.Map<User, UserViewModel>(await userRepository.findById(id));
         }
 
-        public async Task<IEnumerable<UserViewModel>> getAllUser()
+        public async Task<IEnumerable<UserSummaryViewModel>> getAllUser()
         {
             var result = await userRepository.findAll();
             userRepository.Dispose();
-            return mapper.Map<IEnumerable<User>, IEnumerable<UserViewModel>>(result);
+            return mapper.Map<IEnumerable<User>, IEnumerable<UserSummaryViewModel>>(result);
         }
 
-        public async Task<PageResult<UserViewModel>> getAllUserByPage(int page)
+        public async Task<PageResult<UserSummaryViewModel>> getAllUserByPage(int page)
         {
             var result = await userRepository.findAllInPage(page);
-            return mapper.Map<PageResult<User>, PageResult<UserViewModel>>(result);
+            return mapper.Map<PageResult<User>, PageResult<UserSummaryViewModel>>(result);
         }
 
-        public async Task<bool> hardDelete(User user)
+        public async Task<bool> hardDelete(UserViewModel user)
         {
-            return await userRepository.hardDelete(user);
+            return await userRepository.hardDelete(mapper.Map<UserViewModel, User>(user));
         }
 
-        public async Task<bool> loginUser()
+        public async Task<UserSummaryViewModel> loginUser(UserLoginViewModel model)
         {
-            throw new NotImplementedException();
+            var user = await userRepository.findUserByUsername(model.username);
+            if (user == null) throw new UserNotFoundException("Username not found, please make sure the username is correct");
+            if (Validator.isNullOrEmpty(model.password)) throw new InvalidDataException("Password cannot be null");
+            if (!BCrypt.Net.BCrypt.Verify(model.password, user.password)) throw new InvalidDataException("Password incorrect");
+            var result = mapper.Map<User, UserSummaryViewModel>(user);
+            result.refreshToken = TokenHelper.createRefreshToken(user, setting.tokenKey, setting.refeshTokenDuration);
+            result.accessToken = TokenHelper.createRefreshToken(user, setting.tokenKey, setting.accessTokenDuration);
+            return result;
         }
 
         public async Task<bool> logoutUser()
@@ -75,7 +84,7 @@ namespace Services.Implementations
             throw new NotImplementedException();
         }
 
-        public async Task<bool> update(User user, string id)
+        public async Task<bool> update(UserViewModel user, string id)
         {
             var u = await userRepository.findById(new ObjectId(id));
             if (u == null) throw new NotFoundException($"User not found with id {id}");

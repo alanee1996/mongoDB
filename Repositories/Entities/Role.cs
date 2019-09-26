@@ -7,7 +7,7 @@ using Repositories.Attributes;
 
 namespace Repositories.Entities
 {
-    [DBConfig.Collection("roles")]
+    [DBConfig.Collection("roles", "id")]
     public class Role
     {
         [BsonId]
