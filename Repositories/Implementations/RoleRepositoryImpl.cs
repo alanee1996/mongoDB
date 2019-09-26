@@ -14,9 +14,10 @@ namespace Repositories.Implementations
     public class RoleRepositoryImpl : RoleRepository
     {
         private bool disposeStatus = false;
-        public RoleRepositoryImpl(DBEntities db) : base(db)
+        private RolePermissionRepository rolePermission;
+        public RoleRepositoryImpl(DBEntities db, RolePermissionRepository rolePermission) : base(db)
         {
-
+            this.rolePermission = rolePermission;
         }
 
         public async override Task<bool> create(Role obj)
@@ -44,7 +45,12 @@ namespace Repositories.Implementations
 
         public async override Task<IEnumerable<Role>> findAll()
         {
-            return await collections.Find(c => c.isActive).ToListAsync();
+            var roles = await collections.Find(c => c.isActive).ToListAsync();
+            foreach (var r in roles)
+            {
+                r.rolePermissions = await rolePermission.findByRoleId(r.id);
+            }
+            return roles;
         }
 
         public async override Task<PageResult<Role>> findAllInPage(int page)

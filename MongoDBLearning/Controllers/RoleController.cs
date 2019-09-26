@@ -14,7 +14,7 @@ namespace MongoDBLearning.Controllers
 {
     [Route("api/authenticated/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class RoleController : ControllerBase
     {
 

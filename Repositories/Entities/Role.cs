@@ -16,5 +16,11 @@ namespace Repositories.Entities
         public string name { get; set; }
         public string slug { get; set; }
         public bool isActive { get; set; }
+        public IEnumerable<RolePermission> rolePermissions { get; set; }
+
+        public Role()
+        {
+            rolePermissions = new List<RolePermission>();
+        }
     }
 }

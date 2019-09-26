@@ -28,7 +28,6 @@ namespace Repositories.Entities
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
         public DateTime updatedAt { get; set; }
         //one to one relationship
-        [BsonIgnoreIfNull]
         public IEnumerable<Role> roles { get; set; }
 
         public User()

@@ -13,6 +13,7 @@ using MongoDBLearning.Middlewares;
 using Repositories;
 using Repositories.ARepositories;
 using Repositories.Implementations;
+using Repositories.Seeder;
 using Services;
 using Services.Implementations;
 using Services.IServices;
@@ -42,15 +43,19 @@ namespace MongoDBLearning
             });
 
             IMapper mapper = mappingConfig.CreateMapper();
-            AddJWTTokenService(services, settings);
+            //AddJWTTokenService(services, settings);
             services.AddSingleton(mapper);
             //custom services
             //register repositories
             services.AddScoped<UserRepository, UserRepositoryImpl>();
             services.AddScoped<RoleRepository, RoleRepositoryImpl>();
+            services.AddScoped<RolePermissionRepository, RolePermissionRepositoryImpl>();
+
+            services.AddScoped<RepoCollections>();
             //register services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -83,9 +88,9 @@ namespace MongoDBLearning
 
             builder.MapMiddlewareRoute("/api/authenticated/{*controller}", a =>
             {
-                a.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+                //a.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
                 a.UseJsonResponse();
-                a.UseAuthentication();
+                //a.UseAuthentication();
                 a.UseMvc();
             });
 

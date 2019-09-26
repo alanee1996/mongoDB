@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Repositories.Attributes;
+using Repositories.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Repositories
 
         public DBEntities(IOptions<AppSetting> options)
         {
-            this.settings = options.Value;
+            settings = options.Value;
             var client = new MongoClient(settings.connectionString);
             db = client.GetDatabase(settings.dbname);
         }
@@ -52,6 +53,38 @@ namespace Repositories
 
             return result;
         }
+
+        public async Task RunSeeder<T>(List<T> data)
+        {
+            Type t = typeof(T);
+            DBConfig.CollectionAttribute collection = t.GetCustomAttributes(true).FirstOrDefault(c => c.GetType() == typeof(DBConfig.CollectionAttribute)) as DBConfig.CollectionAttribute;
+            var collections = await db.ListCollectionsAsync(new ListCollectionsOptions
+            {
+                Filter = new BsonDocument("name", collection.collectionName)
+            });
+            if (!await collections.AnyAsync())
+            {
+                await db.CreateCollectionAsync(collection.collectionName);
+                var result = db.GetCollection<T>(collection.collectionName);
+                if (collection.indexes.Length > 0)
+                {
+                    var indexDefinition = Builders<T>.IndexKeys.Combine(collection.indexes.Select(c => Builders<T>.IndexKeys.Ascending(c)));
+                    string s = await result.Indexes.CreateOneAsync(indexDefinition);
+                }
+                await result.InsertManyAsync(data);
+            }
+            else
+            {
+                var result = db.GetCollection<T>(collection.collectionName);
+                await result.InsertManyAsync(data);
+            }
+
+        }
+
+
+
+
+
 
         public void Dispose()
         {
