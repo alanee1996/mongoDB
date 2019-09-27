@@ -43,8 +43,8 @@ namespace Services.Security
                 var information = TokenHelper.getInformationFromToken(token, setting.tokenKey, Options.tokenValidationParameters);
                 var claim = information.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.NameId);
                 var user = new UserIdentity(claim.Value);
-                user.email = "asdasdasd";
                 var ticket = new AuthenticationTicket(new ClaimsPrincipal(user), this.Scheme.Name);
+                UserIdentity test = (UserIdentity)ticket.Principal.Identity;
                 return AuthenticateResult.Success(ticket);
             }
             catch (SecurityTokenInvalidSignatureException ex)

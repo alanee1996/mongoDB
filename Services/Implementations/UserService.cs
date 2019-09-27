@@ -9,7 +9,9 @@ using Repositories.ViewModels;
 using Services.IServices;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,11 +20,13 @@ namespace Services.Implementations
     public class UserService : IUserService
     {
         private readonly UserRepository userRepository;
+        private readonly RoleRepository roleRepositiry;
         private IMapper mapper;
         private readonly AppSetting setting;
-        public UserService(UserRepository userRepository, IMapper mapper, IOptions<AppSetting> option)
+        public UserService(UserRepository userRepository, IMapper mapper, IOptions<AppSetting> option, RoleRepository roleRepositiry)
         {
             this.userRepository = userRepository;
+            this.roleRepositiry = roleRepositiry;
             this.setting = option.Value;
             this.mapper = mapper;
         }
@@ -44,9 +48,11 @@ namespace Services.Implementations
             return await userRepository.softDelete(mapper.Map<UserViewModel, User>(user));
         }
 
-        public async Task<UserViewModel> findUserById(ObjectId id)
+        public async Task<UserSummaryViewModel> findUserById(ObjectId id)
         {
-            return mapper.Map<User, UserViewModel>(await userRepository.findById(id));
+            var user = mapper.Map<User, UserSummaryViewModel>(await userRepository.findById(id));
+            user.role = await roleRepositiry.findById(user.role.id);
+            return user;
         }
 
         public async Task<IEnumerable<UserSummaryViewModel>> getAllUser()
@@ -93,6 +99,14 @@ namespace Services.Implementations
             u.email = user.email;
             u.dob = user.dob;
             return await userRepository.update(u);
+        }
+
+        public async Task<UserSummaryViewModel> currentUser(ClaimsPrincipal principal)
+        {
+            var id = new ObjectId(principal.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.UniqueName).Value);
+            var user = await findUserById(id);
+            if (user == null) throw new UnauthorizedException("User not found when retriving from token");
+            return user;
         }
     }
 }

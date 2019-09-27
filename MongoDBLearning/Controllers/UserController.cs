@@ -17,7 +17,7 @@ namespace MongoDBLearning.Controllers
 {
     [Route("api/authenticated/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class UserController : ControllerBase
     {
 
@@ -30,7 +30,7 @@ namespace MongoDBLearning.Controllers
 
         [HttpGet]
         [Route("users")]
-        [HasAccess("VIEW_ROLE")]
+        [HasAccess("VIEW_USER")]
         public Task<IEnumerable<UserSummaryViewModel>> GetUsers()
         {
             return userService.getAllUser();
