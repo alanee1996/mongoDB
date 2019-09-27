@@ -11,6 +11,7 @@ using MongoDB.Bson;
 using Repositories.Entities;
 using Repositories.ViewModels;
 using Services.IServices;
+using Services.Security;
 
 namespace MongoDBLearning.Controllers
 {
@@ -29,6 +30,7 @@ namespace MongoDBLearning.Controllers
 
         [HttpGet]
         [Route("users")]
+        [HasAccess("VIEW_ROLE")]
         public Task<IEnumerable<UserSummaryViewModel>> GetUsers()
         {
             return userService.getAllUser();

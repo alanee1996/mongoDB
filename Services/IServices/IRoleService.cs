@@ -12,5 +12,6 @@ namespace Services.IServices
         Task<IEnumerable<RoleViewModel>> getAllRoles();
         Task<PageResult<RoleViewModel>> getRolesByPage(int page);
         Task<RoleViewModel> getRoleById(string id);
+        Task<bool> checkPermission(string slug);
     }
 }

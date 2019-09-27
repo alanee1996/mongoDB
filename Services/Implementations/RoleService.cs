@@ -23,9 +23,21 @@ namespace Services.Implementations
             this.mapper = mapper;
         }
 
+        public async Task<bool> checkPermission(string slug)
+        {
+            var temp = await roleRepository.findBySlug(slug);
+            var role = mapper.Map<Role, RoleViewModel>(temp);
+            if (role == null) throw new Exception("Role not found during permission checking, this can due to the role is deleted or system error");
+            return role.permissions.Count(c => c.permission.slug == slug) > 0;
+        }
+
         public async Task<IEnumerable<RoleViewModel>> getAllRoles()
         {
-            return mapper.Map<IEnumerable<Role>, IEnumerable<RoleViewModel>>(await roleRepository.findAll());
+            var temp = await roleRepository.findAll();
+            var roles = temp.ToList();
+            int count = roles.Count();
+            var result = mapper.Map<List<Role>, List<RoleViewModel>>(roles);
+            return result;
         }
 
         public async Task<RoleViewModel> getRoleById(string id)

@@ -17,6 +17,7 @@ using Repositories.Seeder;
 using Services;
 using Services.Implementations;
 using Services.IServices;
+using Services.Security;
 using System.Text;
 
 namespace MongoDBLearning
@@ -43,9 +44,9 @@ namespace MongoDBLearning
             });
 
             IMapper mapper = mappingConfig.CreateMapper();
-            //AddJWTTokenService(services, settings);
+            AddJWTTokenService(services, settings);
             services.AddSingleton(mapper);
-            //custom services
+
             //register repositories
             services.AddScoped<UserRepository, UserRepositoryImpl>();
             services.AddScoped<RoleRepository, RoleRepositoryImpl>();
@@ -88,9 +89,9 @@ namespace MongoDBLearning
 
             builder.MapMiddlewareRoute("/api/authenticated/{*controller}", a =>
             {
-                //a.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+                a.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
                 a.UseJsonResponse();
-                //a.UseAuthentication();
+                a.UseAuthentication();
                 a.UseMvc();
             });
 
@@ -105,7 +106,19 @@ namespace MongoDBLearning
             {
                 c.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 c.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(c =>
+            })
+            //.AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, c =>
+            //{
+            //    c.saveToken = false;
+            //    c.tokenValidationParameters = new TokenValidationParameters
+            //    {
+            //        ValidateIssuerSigningKey = true,
+            //        IssuerSigningKey = new SymmetricSecurityKey(secret),
+            //        ValidateIssuer = false,
+            //        ValidateAudience = false
+            //    };
+            //});
+            .AddJwtBearer(c =>
             {
                 c.RequireHttpsMetadata = false;
                 c.SaveToken = true;

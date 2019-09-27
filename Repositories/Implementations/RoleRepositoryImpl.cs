@@ -61,7 +61,10 @@ namespace Repositories.Implementations
 
         public async override Task<Role> findById(ObjectId id)
         {
-            return await collections.Find(c => c.isActive && c.id == id).FirstOrDefaultAsync();
+            var result = await collections.Find(c => c.isActive && c.id == id).FirstOrDefaultAsync();
+            if (result == null) return null;
+            result.rolePermissions = await rolePermission.findByRoleId(id);
+            return result;
         }
 
         public async override Task<bool> hardDelete(Role obj)
@@ -81,6 +84,14 @@ namespace Repositories.Implementations
             validation(obj);
             var result = await collections.ReplaceOneAsync(c => c.id == obj.id, obj);
             return result.ModifiedCount > 0 ? true : false;
+        }
+
+        public async override Task<Role> findBySlug(string slug)
+        {
+            var result = await collections.Find(c => c.isActive && c.slug == slug).FirstOrDefaultAsync();
+            if (result == null) return null;
+            result.rolePermissions = await rolePermission.findByRoleId(result.id);
+            return result;
         }
     }
 }

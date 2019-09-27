@@ -75,7 +75,7 @@ namespace Services.Implementations
             if (!BCrypt.Net.BCrypt.Verify(model.password, user.password)) throw new InvalidDataException("Password incorrect");
             var result = mapper.Map<User, UserSummaryViewModel>(user);
             result.refreshToken = TokenHelper.createRefreshToken(user, setting.tokenKey, setting.refeshTokenDuration);
-            result.accessToken = TokenHelper.createRefreshToken(user, setting.tokenKey, setting.accessTokenDuration);
+            result.accessToken = TokenHelper.CreateAccessToken(user, setting.tokenKey, setting.accessTokenDuration);
             return result;
         }
 

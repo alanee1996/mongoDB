@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 
 namespace Services
@@ -24,7 +25,8 @@ namespace Services
         {
             return createToken(user, key, duration, c => new ClaimsIdentity(new Claim[]
                    {
-                    new Claim(ClaimTypes.Name, c.id.ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, c.id.ToString()),
+                    new Claim(ClaimTypes.Name, c.email),
                     new Claim(ClaimTypes.Role,c.roles.FirstOrDefault().slug)
                    }));
         }
@@ -41,6 +43,15 @@ namespace Services
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public static JwtSecurityToken getInformationFromToken(string token, string key, TokenValidationParameters options)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var secret = Encoding.ASCII.GetBytes(key);
+            SecurityToken validatedToken;
+            IPrincipal principal = tokenHandler.ValidateToken(token, options, out validatedToken);
+            return tokenHandler.ReadJwtToken(token);
         }
     }
 }

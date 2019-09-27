@@ -1,6 +1,7 @@
 ﻿using Repositories.Entities;
 using System;
 using System.Collections.Generic;
+using System.Security.Principal;
 using System.Text;
 
 namespace Repositories.ViewModels
@@ -45,6 +46,32 @@ namespace Repositories.ViewModels
         public string username { get; set; }
         public string password { get; set; }
         public bool rememberMe { get; set; }
+    }
+
+    public class UserIdentity : IPrincipal
+    {
+        public IIdentity Identity { get; private set; }
+
+        public bool IsInRole(string role)
+        {
+            return this.role.name == role;
+        }
+
+        public UserIdentity(string id)
+        {
+            this.id = id;
+            Identity = new GenericIdentity(id);
+        }
+
+        public string id { get; private set; }
+        public string username { get; set; }
+        public string name { get; set; }
+        public string email { get; set; }
+        public DateTime dob { get; set; }
+        public bool isActive { get; set; }
+        public DateTime createdAt { get; set; }
+        public DateTime updatedAt { get; set; }
+        public Role role { get; set; }
     }
 
 }
