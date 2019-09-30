@@ -30,7 +30,6 @@ namespace MongoDBLearning.Controllers
 
         [HttpGet]
         [Route("users")]
-        [HasAccess("VIEW_USER")]
         public Task<IEnumerable<UserSummaryViewModel>> GetUsers()
         {
             return userService.getAllUser();
@@ -63,23 +62,46 @@ namespace MongoDBLearning.Controllers
         [Route("users/delete/{id}")]
         public async Task<JsonResponse> delete(string id)
         {
-            var user = await userService.findUserById(new ObjectId(id));
-            if (user == null) throw new NotFoundException($"User with id {id} not found");
-            return await userService.delete(null) ? JsonResponse.success("User delete successful", null) : throw new Exception("Delete user failed due to internal process error");
+            try
+            {
+                var user = await userService.findUserById(new ObjectId(id));
+                if (user == null) throw new NotFoundException($"User with id {id} not found");
+                return await userService.delete(null) ? JsonResponse.success("User delete successful", null) : throw new Exception("Delete user failed due to internal process error");
+            }
+            catch (UserNotFoundException ex)
+            {
+                return JsonResponse.successButInvalid(ex.Message);
+            }
+            catch (InvalidDataException ex)
+            {
+                return JsonResponse.successButInvalid(ex.Message);
+            }
         }
 
         [HttpPatch]
         [Route("users/update/{id}")]
         public async Task<JsonResponse> update(string id, [FromBody] UserViewModel user)
         {
-            if (await userService.update(user, id))
+            try
             {
-                return JsonResponse.success("User update successful", await userService.findUserById(new ObjectId(id)));
+                if (await userService.update(user, id))
+                {
+                    return JsonResponse.success("User update successful", await userService.findUserById(new ObjectId(id)));
+                }
+                else
+                {
+                    return JsonResponse.successButInvalid("User update failed");
+                }
             }
-            else
+            catch (UserNotFoundException ex)
             {
-                return JsonResponse.successButInvalid("User update failed");
+                return JsonResponse.successButInvalid(ex.Message);
             }
+            catch (InvalidDataException ex)
+            {
+                return JsonResponse.successButInvalid(ex.Message);
+            }
+
         }
 
         [HttpPost]
@@ -90,7 +112,11 @@ namespace MongoDBLearning.Controllers
             try
             {
                 var user = await userService.loginUser(model);
-                return JsonResponse.success("Login successful", user);
+                return JsonResponse.success("Login successful", user).setTokenInfo(user.accessToken, user.refreshToken);
+            }
+            catch (UserNotFoundException ex)
+            {
+                return JsonResponse.successButInvalid(ex.Message);
             }
             catch (InvalidDataException ex)
             {

@@ -3,12 +3,12 @@ using Base;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 using MongoDBLearning.Middlewares;
 using Repositories;
 using Repositories.ARepositories;
@@ -17,8 +17,8 @@ using Repositories.Seeder;
 using Services;
 using Services.Implementations;
 using Services.IServices;
-using Services.Security;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MongoDBLearning
 {
@@ -36,7 +36,7 @@ namespace MongoDBLearning
         {
             var settings = this.Configuration.GetSection("AppSettings");
             services.Configure<AppSetting>(settings);
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddSignalR();
             services.AddScoped<DBEntities>();
             var mappingConfig = new MapperConfiguration(mc =>
             {
@@ -46,7 +46,7 @@ namespace MongoDBLearning
             IMapper mapper = mappingConfig.CreateMapper();
             AddJWTTokenService(services, settings);
             services.AddSingleton(mapper);
-
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             //register repositories
             services.AddScoped<UserRepository, UserRepositoryImpl>();
             services.AddScoped<RoleRepository, RoleRepositoryImpl>();
@@ -56,7 +56,6 @@ namespace MongoDBLearning
             //register services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -72,8 +71,15 @@ namespace MongoDBLearning
             }
 
             app.UseHttpsRedirection();
-            app.UseRouter(BuildRouter(app));
+            app.UseRouter(BuildRouterNormalApi(app));
             app.UseStaticFiles();
+            app.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
+            app.UseSignalR(r =>
+            {
+                r.MapHub<ChatService>("/chat");
+            });
+            app.UseJsonResponse();
+            app.UseAuthentication();
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -83,7 +89,7 @@ namespace MongoDBLearning
         }
 
         //build the custom route for specific middleware
-        public IRouter BuildRouter(IApplicationBuilder app)
+        public IRouter BuildRouterNormalApi(IApplicationBuilder app)
         {
             var builder = new RouteBuilder(app);
 
@@ -128,6 +134,23 @@ namespace MongoDBLearning
                     IssuerSigningKey = new SymmetricSecurityKey(secret),
                     ValidateIssuer = false,
                     ValidateAudience = false
+                };
+                c.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        // If the request is for our hub...
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/chat")))
+                        {
+                            // Read the token out of the query string
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    },
                 };
             });
         }
