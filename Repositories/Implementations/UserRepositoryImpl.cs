@@ -51,7 +51,7 @@ namespace Repositories.Implementations
 
         public async override Task<User> findById(ObjectId id)
         {
-            return await collections.Find(c => c.id == id && c.isActive).FirstOrDefaultAsync();
+            return await collections.Aggregate().Match(c => c.id == id && c.isActive).Lookup<Role, User>("roles", "roleId", "id", "roles").FirstOrDefaultAsync();
         }
 
         public async override Task<bool> hardDelete(User obj)
@@ -83,6 +83,12 @@ namespace Repositories.Implementations
         {
             var user = await collections.Aggregate().Match(c => c.username == username && c.isActive).Lookup<Role, User>("roles", "roleId", "id", "roles").FirstOrDefaultAsync();
             return user;
+        }
+
+        public async override Task<string> findUsernameById(string id)
+        {
+            var user = await findById(new ObjectId(id));
+            return user.username;
         }
     }
 }

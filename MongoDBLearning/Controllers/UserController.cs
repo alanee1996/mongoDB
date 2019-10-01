@@ -36,6 +36,7 @@ namespace MongoDBLearning.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("users/create")]
         public async Task<JsonResponse> create([FromBody] UserViewModel user)
         {
@@ -122,6 +123,15 @@ namespace MongoDBLearning.Controllers
             {
                 return JsonResponse.successButInvalid(ex.Message);
             }
+        }
+
+        //this is for testing purpose
+        [HttpGet]
+        [Route("users/{id}/all")]
+        [AllowAnonymous]
+        public async Task<JsonResponse> getUserExcept(string id)
+        {
+            return JsonResponse.success("Request successful", await userService.getUserExceptById(id));
         }
     }
 }

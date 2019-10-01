@@ -19,6 +19,8 @@ namespace Repositories.ARepositories
 
         public abstract Task<User> findUserByUsername(string username);
 
+        public abstract Task<string> findUsernameById(string id);
+
         public override void validation(User obj)
         {
             if (Validator.isNullOrEmpty(obj.name)) throw new InvalidDataException("User name cannot be null");

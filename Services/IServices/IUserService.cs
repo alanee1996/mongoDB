@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Services.IServices
 {
-    public interface IUserService
+    public interface IUserService : IDisposable
     {
 
         Task<IEnumerable<UserSummaryViewModel>> getAllUser();
@@ -20,7 +20,9 @@ namespace Services.IServices
         Task<bool> delete(UserViewModel user);
         Task<bool> hardDelete(UserViewModel user);
         Task<UserSummaryViewModel> findUserById(ObjectId id);
+        Task<IEnumerable<UserSummaryViewModel>> getUserExceptById(string id);
         Task<UserSummaryViewModel> loginUser(UserLoginViewModel user);
+        Task<string> getUsernameById(string id);
         Task<bool> logoutUser();
         Task<string> createToken(User user);
         Task<UserSummaryViewModel> currentUser(ClaimsPrincipal principal);

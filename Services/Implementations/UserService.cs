@@ -108,5 +108,28 @@ namespace Services.Implementations
             if (user == null) throw new UnauthorizedException("User not found when retriving from token");
             return user;
         }
+
+        public async Task<string> getUsernameById(string id)
+        {
+            return await userRepository.findUsernameById(id);
+        }
+
+        public void Dispose()
+        {
+            this.userRepository.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        public async Task<IEnumerable<UserSummaryViewModel>> getUserExceptById(string id)
+        {
+            var users = (await getAllUser()).ToList();
+            int? index = users.FindIndex(c => c.id.ToString() == id);
+            if (index != null)
+            {
+                users.RemoveAt(index.Value);
+            }
+            users.ForEach(c => c.role = null);
+            return users;
+        }
     }
 }
